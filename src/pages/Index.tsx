@@ -17,6 +17,7 @@ import {
 const Index = () => {
   const {
     isActive,
+    isPaused,
     isLoading,
     facesDetected,
     isRecording,
@@ -25,6 +26,9 @@ const Index = () => {
     canvasRef,
     startCamera,
     stopCamera,
+    pauseCamera,
+    resumeCamera,
+    resetSystem,
     startRecording,
     stopRecording,
     captureSnapshot,
@@ -86,6 +90,7 @@ const Index = () => {
               videoRef={videoRef}
               canvasRef={canvasRef}
               isActive={isActive}
+              isPaused={isPaused}
               facesDetected={facesDetected}
               isRecording={isRecording}
               error={error}
@@ -151,6 +156,9 @@ const Index = () => {
               error={error}
               onStartCamera={startCamera}
               onStopCamera={stopCamera}
+              onPauseCamera={pauseCamera}
+              onResumeCamera={resumeCamera}
+              onResetSystem={resetSystem}
               onStartRecording={startRecording}
               onStopRecording={stopRecording}
               onCaptureSnapshot={captureSnapshot}

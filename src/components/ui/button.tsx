@@ -22,6 +22,8 @@ const buttonVariants = cva(
         "camera-stop": "bg-camera-inactive text-destructive-foreground hover:bg-camera-inactive/90 shadow-lg hover:shadow-glow transform hover:scale-105",
         control: "bg-secondary/50 backdrop-blur-sm border border-border text-foreground hover:bg-secondary/80 hover:shadow-card transform hover:scale-105",
         action: "gradient-primary text-primary-foreground hover:shadow-primary transform hover:scale-105 hover:shadow-glow",
+        pause: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-lg hover:shadow-glow transform hover:scale-105",
+        reset: "bg-muted text-muted-foreground hover:bg-muted/80 border border-border hover:shadow-card transform hover:scale-105",
       },
       size: {
         default: "h-10 px-4 py-2",

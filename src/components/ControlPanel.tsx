@@ -23,6 +23,9 @@ interface ControlPanelProps {
   error: string | null;
   onStartCamera: () => void;
   onStopCamera: () => void;
+  onPauseCamera: () => void;
+  onResumeCamera: () => void;
+  onResetSystem: () => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
   onCaptureSnapshot: () => void;
@@ -35,6 +38,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   error,
   onStartCamera,
   onStopCamera,
+  onPauseCamera,
+  onResumeCamera,
+  onResetSystem,
   onStartRecording,
   onStopRecording,
   onCaptureSnapshot,
@@ -69,23 +75,50 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 {isLoading ? 'Starting...' : 'Start Camera'}
               </Button>
             ) : (
-              <Button
-                variant="camera-stop"
-                size="lg"
-                onClick={onStopCamera}
-                className="flex-1 min-w-[140px]"
-              >
-                <Square className="w-4 h-4 mr-2" />
-                Stop Camera
-              </Button>
+              <>
+                <Button
+                  variant="camera-stop"
+                  size="lg"
+                  onClick={onStopCamera}
+                  className="flex-1 min-w-[120px]"
+                >
+                  <Square className="w-4 h-4 mr-2" />
+                  Stop
+                </Button>
+                
+                {!stats.isPaused ? (
+                  <Button
+                    variant="pause"
+                    size="lg"
+                    onClick={onPauseCamera}
+                    className="flex-1 min-w-[120px]"
+                  >
+                    <div className="w-4 h-4 mr-2 flex items-center">
+                      <div className="w-1 h-4 bg-current mr-0.5"></div>
+                      <div className="w-1 h-4 bg-current"></div>
+                    </div>
+                    Pause
+                  </Button>
+                ) : (
+                  <Button
+                    variant="camera"
+                    size="lg"
+                    onClick={onResumeCamera}
+                    className="flex-1 min-w-[120px]"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Resume
+                  </Button>
+                )}
+              </>
             )}
             
             <Button
               variant="control"
               size="lg"
               onClick={onCaptureSnapshot}
-              disabled={!stats.isActive}
-              className="flex-1 min-w-[140px]"
+              disabled={!stats.isActive || stats.isPaused}
+              className="flex-1 min-w-[120px]"
             >
               <Camera className="w-4 h-4 mr-2" />
               Snapshot
@@ -99,7 +132,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               <Button
                 variant="action"
                 onClick={onStartRecording}
-                disabled={!stats.isActive}
+                disabled={!stats.isActive || stats.isPaused}
                 className="flex-1"
               >
                 <Video className="w-4 h-4 mr-2" />
@@ -115,6 +148,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 Stop Recording
               </Button>
             )}
+            
+            <Button
+              variant="reset"
+              onClick={onResetSystem}
+              className="flex-1"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reset System
+            </Button>
             
             <Button
               variant="outline"
@@ -145,8 +187,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <Eye className="w-3 h-3" />
                 Camera Status
               </span>
-              <Badge variant={stats.isActive ? "default" : "secondary"}>
-                {stats.isActive ? 'Active' : 'Inactive'}
+              <Badge variant={stats.isActive ? (stats.isPaused ? "outline" : "default") : "secondary"}>
+                {stats.isActive ? (stats.isPaused ? 'Paused' : 'Active') : 'Inactive'}
               </Badge>
             </div>
             

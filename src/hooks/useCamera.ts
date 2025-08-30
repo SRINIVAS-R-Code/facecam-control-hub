@@ -3,6 +3,7 @@ import { useToast } from './use-toast';
 
 export interface CameraStats {
   isActive: boolean;
+  isPaused: boolean;
   facesDetected: number;
   resolution: string;
   fps: number;
@@ -11,6 +12,7 @@ export interface CameraStats {
 
 export const useCamera = () => {
   const [isActive, setIsActive] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [facesDetected, setFacesDetected] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
@@ -67,6 +69,102 @@ export const useCamera = () => {
     }
   }, [toast]);
 
+  const pauseCamera = useCallback(() => {
+    try {
+      if (videoRef.current && isActive && !isPaused) {
+        videoRef.current.pause();
+        setIsPaused(true);
+        
+        // Pause face detection
+        if (detectionIntervalRef.current) {
+          clearInterval(detectionIntervalRef.current);
+          detectionIntervalRef.current = null;
+        }
+        
+        toast({
+          title: "Camera Paused",
+          description: "Video feed and detection paused",
+          variant: "default"
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Pause Error",
+        description: "Failed to pause camera",
+        variant: "destructive"
+      });
+    }
+  }, [isActive, isPaused, toast]);
+
+  const resumeCamera = useCallback(() => {
+    try {
+      if (videoRef.current && isActive && isPaused) {
+        videoRef.current.play();
+        setIsPaused(false);
+        
+        // Resume face detection
+        detectionIntervalRef.current = setInterval(() => {
+          setFacesDetected(Math.floor(Math.random() * 3));
+        }, 1000);
+        
+        toast({
+          title: "Camera Resumed",
+          description: "Video feed and detection resumed",
+          variant: "default"
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Resume Error",
+        description: "Failed to resume camera",
+        variant: "destructive"
+      });
+    }
+  }, [isActive, isPaused, toast]);
+
+  const resetSystem = useCallback(() => {
+    try {
+      // Stop everything first
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+        detectionIntervalRef.current = null;
+      }
+      
+      if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stop();
+      }
+      
+      // Reset all states
+      setIsActive(false);
+      setIsPaused(false);
+      setIsRecording(false);
+      setFacesDetected(0);
+      setError(null);
+      setIsLoading(false);
+      
+      toast({
+        title: "System Reset",
+        description: "All settings and connections have been reset",
+        variant: "default"
+      });
+    } catch (err) {
+      toast({
+        title: "Reset Error",
+        description: "Failed to reset system completely",
+        variant: "destructive"
+      });
+    }
+  }, [isRecording, toast]);
+
   const stopCamera = useCallback(() => {
     try {
       if (streamRef.current) {
@@ -88,6 +186,7 @@ export const useCamera = () => {
       }
       
       setIsActive(false);
+      setIsPaused(false);
       setIsRecording(false);
       setFacesDetected(0);
       setError(null);
@@ -187,12 +286,13 @@ export const useCamera = () => {
   const getStats = useCallback((): CameraStats => {
     return {
       isActive,
+      isPaused,
       facesDetected,
       resolution: isActive ? '1920x1080' : 'N/A',
-      fps: isActive ? 30 : 0,
+      fps: isActive && !isPaused ? 30 : 0,
       isRecording
     };
-  }, [isActive, facesDetected, isRecording]);
+  }, [isActive, isPaused, facesDetected, isRecording]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -204,6 +304,7 @@ export const useCamera = () => {
   return {
     // State
     isActive,
+    isPaused,
     isLoading,
     facesDetected,
     isRecording,
@@ -216,6 +317,9 @@ export const useCamera = () => {
     // Actions
     startCamera,
     stopCamera,
+    pauseCamera,
+    resumeCamera,
+    resetSystem,
     startRecording,
     stopRecording,
     captureSnapshot,

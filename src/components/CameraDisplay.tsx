@@ -7,6 +7,7 @@ interface CameraDisplayProps {
   videoRef: React.RefObject<HTMLVideoElement>;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   isActive: boolean;
+  isPaused: boolean;
   facesDetected: number;
   isRecording: boolean;
   error: string | null;
@@ -16,6 +17,7 @@ export const CameraDisplay: React.FC<CameraDisplayProps> = ({
   videoRef,
   canvasRef,
   isActive,
+  isPaused,
   facesDetected,
   isRecording,
   error
@@ -29,25 +31,34 @@ export const CameraDisplay: React.FC<CameraDisplayProps> = ({
           autoPlay
           playsInline
           muted
-          className={`w-full h-full object-cover ${isActive ? 'camera-active' : ''}`}
+          className={`w-full h-full object-cover ${isActive ? 'camera-active' : ''} ${isPaused ? 'opacity-50' : ''}`}
         />
         
         {/* Hidden Canvas for Snapshots */}
         <canvas ref={canvasRef} className="hidden" />
+        
+        {/* Pause Overlay */}
+        {isPaused && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <div className="bg-warning/90 text-warning-foreground px-6 py-3 rounded-lg font-semibold text-lg shadow-lg">
+              ⏸️ CAMERA PAUSED
+            </div>
+          </div>
+        )}
         
         {/* Status Overlays */}
         <div className="absolute top-4 left-4 flex flex-wrap gap-2">
           {/* Camera Status */}
           <Badge 
             variant={isActive ? "default" : "secondary"} 
-            className={`${isActive ? 'bg-camera-active' : 'bg-muted'} status-indicator`}
+            className={isActive && !isPaused ? 'bg-camera-active status-indicator' : 'bg-muted'}
           >
             {isActive ? <Eye className="w-3 h-3 mr-1" /> : <EyeOff className="w-3 h-3 mr-1" />}
-            {isActive ? 'LIVE' : 'OFFLINE'}
+            {isActive ? (isPaused ? 'PAUSED' : 'LIVE') : 'OFFLINE'}
           </Badge>
           
           {/* Recording Status */}
-          {isRecording && (
+          {isRecording && !isPaused && (
             <Badge variant="destructive" className="status-indicator">
               <div className="w-2 h-2 rounded-full bg-current mr-2 animate-pulse" />
               REC
@@ -55,12 +66,19 @@ export const CameraDisplay: React.FC<CameraDisplayProps> = ({
           )}
           
           {/* Face Detection */}
-          {isActive && (
+          {isActive && !isPaused && (
             <Badge 
               variant="outline" 
               className="bg-detection-highlight/20 border-detection-highlight text-detection-highlight"
             >
               👤 {facesDetected} Face{facesDetected !== 1 ? 's' : ''}
+            </Badge>
+          )}
+          
+          {/* Paused Status */}
+          {isPaused && (
+            <Badge variant="outline" className="bg-warning/20 border-warning text-warning">
+              ⏸️ PAUSED
             </Badge>
           )}
         </div>
@@ -76,7 +94,7 @@ export const CameraDisplay: React.FC<CameraDisplayProps> = ({
         )}
         
         {/* Face Detection Boxes */}
-        {facesDetected > 0 && isActive && (
+        {facesDetected > 0 && isActive && !isPaused && (
           <div className="absolute inset-0 pointer-events-none">
             {Array.from({ length: facesDetected }).map((_, index) => (
               <div
